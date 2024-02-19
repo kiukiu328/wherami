@@ -1,22 +1,31 @@
 package com.wherami
 
+import android.content.pm.PackageManager
+import android.content.pm.PackageManager.NameNotFoundException
+import android.os.Build
+import android.util.Log
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.fragment.app.Fragment
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.Promise
-
-import android.util.Log
-import android.widget.Toast
-
+import wherami.lbs.sdk.Client
+import wherami.lbs.sdk.core.MapEngine
+import wherami.lbs.sdk.core.MapEngineFactory
+import wherami.lbs.sdk.data.Location
 import java.io.StreamCorruptedException
 import java.net.URISyntaxException
-import java.util.HashMap
 
-import wherami.lbs.sdk.Client
 
 class WheramiModule(val reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext) {
+  ReactContextBaseJavaModule(reactContext),MapEngine.LocationUpdateCallback {
 
+  private var engine: MapEngine? = null
+  private var mLocation: Location? = null
+  private val fragment:Fragment = Fragment()
   override fun getName(): String {
     return NAME
   }
@@ -31,9 +40,64 @@ class WheramiModule(val reactContext: ReactApplicationContext) :
   companion object {
     const val NAME = "Wherami"
   }
-
   @ReactMethod
-  fun initialize(promise: Promise) {
+  fun checkPermission(promise: Promise){
+    var allPermissions: Array<String>? = null
+    try {
+      allPermissions = reactContext.packageManager
+        .getPackageInfo(reactContext.packageName, PackageManager.GET_PERMISSIONS).requestedPermissions
+    } catch (e: NameNotFoundException) {
+      e.printStackTrace()
+    }
+
+    if (allPermissions != null) {
+      var allPermissionsAlreadyGranted = true
+      if (Build.VERSION.SDK_INT >= 23) {
+        val permissions2request: MutableList<String> = ArrayList()
+        for (permission in allPermissions) {
+          Log.d("Kiu",permission)
+          Log.d("Kiu",checkSelfPermission(reactContext,permission).toString())
+
+          permissions2request.add(permission)
+          if (permission == "android.permission.SYSTEM_ALERT_WINDOW") continue
+          if (checkSelfPermission(reactContext,permission) != PackageManager.PERMISSION_GRANTED) {
+            allPermissionsAlreadyGranted = false
+            permissions2request.add(permission)
+          }
+        }
+        if (permissions2request.isNotEmpty()) {
+          ActivityCompat.requestPermissions(
+            reactContext.currentActivity!!,
+            permissions2request.toTypedArray<String>(),
+            0xFFF
+          )
+        }
+      }
+      Log.d(
+        "Permission",
+        "allPermissionsAlreadyGranted = $allPermissionsAlreadyGranted"
+      )
+      if (allPermissionsAlreadyGranted) {
+        init()
+      }
+    }
+  }
+  @ReactMethod
+  fun start(){
+    if (engine == null) {
+      engine = MapEngineFactory.Create(reactContext)
+      Log.d("LocationInit", engine.toString())
+      try {
+        engine?.initialize()
+      } catch (e: StreamCorruptedException) {
+        e.printStackTrace()
+      }
+    }
+    engine?.attachLocationUpdateCallback(this)
+    engine?.start()
+  }
+
+  private fun init() {
     Log.d("LocationInit", "initialize")
     var isInitialized = false
     try {
@@ -55,7 +119,6 @@ class WheramiModule(val reactContext: ReactApplicationContext) :
       e.printStackTrace()
     }
     checkDataUpdate()
-    promise.resolve(isInitialized)
   }
   private fun checkDataUpdate() {
     //Start only when the app has the latest data
@@ -108,4 +171,17 @@ class WheramiModule(val reactContext: ReactApplicationContext) :
       }
     }, reactContext)
   }
+  @ReactMethod
+  fun location(promise: Promise){
+    promise.resolve("${mLocation?.x},${mLocation?.y},${mLocation?.areaId}")
+  }
+  override fun onLocationUpdated(location: Location) {
+    object : Thread() {
+      override fun run() {
+        mLocation = location
+        Log.d("UpdateLocation","Current Location: (${mLocation?.x},${mLocation?.y},${mLocation?.areaId}")
+      }
+    }.start()
+  }
+
 }

@@ -9,16 +9,13 @@ const LINKING_ERROR =
 const Wherami = NativeModules.Wherami
   ? NativeModules.Wherami
   : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
+    {},
+    {
+      get() {
+        throw new Error(LINKING_ERROR);
+      },
+    }
+  );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return Wherami.multiply(a, b);
-}
 
 export default Wherami
