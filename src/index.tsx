@@ -20,3 +20,5 @@ const Wherami = NativeModules.Wherami
 export function multiply(a: number, b: number): Promise<number> {
   return Wherami.multiply(a, b);
 }
+
+export default Wherami
