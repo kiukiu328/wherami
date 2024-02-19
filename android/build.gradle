@@ -52,7 +52,7 @@ android {
 
     sourceSets {
       main {
-        manifest.srcFile "src/main/AndroidManifestNew.xml"
+        manifest.srcFile "src/main/AndroidManifest.xml"
       }
     }
   }
@@ -95,5 +95,7 @@ dependencies {
   implementation "com.facebook.react:react-android:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation files('libs/offlinesdk-release.aar')
+  implementation 'com.google.android.gms:play-services-location:15.0.0'
+  implementation("androidx.activity:activity-ktx:1.8.2")
 }
 
