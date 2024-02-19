@@ -55,8 +55,8 @@ class WheramiModule(val reactContext: ReactApplicationContext) :
       if (Build.VERSION.SDK_INT >= 23) {
         val permissions2request: MutableList<String> = ArrayList()
         for (permission in allPermissions) {
-          Log.d("Kiu",permission)
-          Log.d("Kiu",checkSelfPermission(reactContext,permission).toString())
+          Log.d("Permission",permission)
+          Log.d("Permission",checkSelfPermission(reactContext,permission).toString())
 
           permissions2request.add(permission)
           if (permission == "android.permission.SYSTEM_ALERT_WINDOW") continue
@@ -77,7 +77,8 @@ class WheramiModule(val reactContext: ReactApplicationContext) :
         "Permission",
         "allPermissionsAlreadyGranted = $allPermissionsAlreadyGranted"
       )
-      if (allPermissionsAlreadyGranted) {
+      //TODO: fix merge permission issue
+      if (true||allPermissionsAlreadyGranted) {
         init()
       }
     }
