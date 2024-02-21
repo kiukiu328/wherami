@@ -2,25 +2,43 @@
 
 By FYP2324
 
-## Installation
-
+## Run test with only wherami module
+clone this project then 
 ```sh
-npm install react-native-wherami
+yarn install
+
+yarn example android; or
+cd example
+npm run start
+```
+
+## Installation/Export module 
+in this project
+```sh
+npm pack ----pack-destination=/PATH/TO/pathadvisor-ar-navigation/res
+```
+in pathadvisor-ar-navigation
+```sh
+npm install ./res/THE_OUTPUT_FILE.tagz
 ```
 
 ## Usage
 
 ```js
-import { multiply } from 'react-native-wherami';
+import Wherami from 'react-native-wherami';
 
-// ...
+// for check permission and init
+Wherami.checkPermission();
+//...
+Wherami.start();
+// return a Promise with string
+// Wherami.location();
 
-const result = await multiply(3, 7);
+//May use like this
+const [location, setLocation] = React.useState();
+Wherami.location().then(setLocation);
 ```
 
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
 
 ## License
 
