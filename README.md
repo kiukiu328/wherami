@@ -15,28 +15,30 @@ npm run start
 ## Installation/Export module 
 in this project
 ```sh
-npm pack ----pack-destination=/PATH/TO/pathadvisor-ar-navigation/res
+npm pack --pack-destination=/PATH/TO/pathadvisor-ar-navigation/res
 ```
 in pathadvisor-ar-navigation
 ```sh
-npm install ./res/THE_OUTPUT_FILE.tagz
+npm install ./res/THE_OUTPUT_FILE.tgz
 ```
 
 ## Usage
+Check the "example/App.tsx"
 
 ```js
-import Wherami from 'react-native-wherami';
-
-// for check permission and init
-Wherami.checkPermission();
+import Wherami, { WheramiEmitter } from 'react-native-wherami';
 //...
-Wherami.start();
-// return a Promise with string
-// Wherami.location();
-
-//May use like this
-const [location, setLocation] = React.useState();
-Wherami.location().then(setLocation);
+React.useEffect(() => {
+    Wherami.checkPermission();
+    WheramiEmitter.addListener('onLocationUpdated', (event) => {
+      setLocation(JSON.stringify(event));
+    });
+    WheramiEmitter.addListener('onInitStatusUpdated', (event) => {
+      setInitStatus(JSON.stringify(event));
+      if (event.isInitialized)
+        Wherami.start();
+    });
+  }, []);
 ```
 
 
