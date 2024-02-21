@@ -1,20 +1,28 @@
 import * as React from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import Wherami from 'react-native-wherami';
+import Wherami, { WheramiEmitter } from 'react-native-wherami';
 
 export default function App() {
-  const [location, setLocation] = React.useState();
+  const [location, setLocation] = React.useState("Waiting for location...");
+  const [initStatus, setInitStatus] = React.useState("");
 
   React.useEffect(() => {
     Wherami.checkPermission();
-    Wherami.start();
+    WheramiEmitter.addListener('onLocationUpdated', (event) => {
+      setLocation(JSON.stringify(event));
+    });
+    WheramiEmitter.addListener('onInitStatusUpdated', (event) => {
+      setInitStatus(JSON.stringify(event));
+      if (event.isInitialized)
+        Wherami.start();
+    });
   }, []);
 
   return (
     <View>
-      <Button title="Location" onPress={() => Wherami.location().then(setLocation)} />
-    <Text>{location}</Text>
+      <Text>{location}</Text>
+      <Text>{initStatus}</Text>
     </View>
   );
 }
